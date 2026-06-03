@@ -7,6 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lab 9</title>
 
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({
+      token: "8a53a8ef81d64e6d8d695673c619b30d"
+    });
+  </script>
+
   <style>
     button {
       margin: 3px;
@@ -88,6 +95,13 @@
   </main>
 
   <script>
+    class ValidationError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = 'ValidationError';
+      }
+    }
+
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -95,13 +109,59 @@
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      try {
+        if (firstNum === '' || secondNum === '') {
+          throw new ValidationError('please enter both numbers');
+        }
+        if (isNaN(firstNum) || isNaN(secondNum)) {
+          throw new ValidationError('inputs must be numbers');
+        }
+        if (operator === '/' && Number(secondNum) === 0) {
+          throw new ValidationError('cannot divide by zero');
+        }
+        output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      } catch (err) {
+        if (err instanceof ValidationError) {
+          output.innerHTML = err.message;
+        } else {
+          output.innerHTML = 'something went wrong';
+        }
+        console.error(err);
+      } finally {
+        console.log('calculate attempted:', firstNum, operator, secondNum);
+      }
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
 
     // Start your code here
     // You may move this JS to another file if you wish
+
+    errorBtns[0].addEventListener('click', () => console.log('first number input:', document.querySelector('#first-num').value));
+    errorBtns[1].addEventListener('click', () => console.error('Console Error button clicked'));
+    errorBtns[2].addEventListener('click', () => console.count('Console Count'));
+    errorBtns[3].addEventListener('click', () => console.warn('Console Warn button clicked'));
+    errorBtns[4].addEventListener('click', () => console.assert(document.querySelector('#first-num').value !== '', 'first number input is empty'));
+    errorBtns[5].addEventListener('click', () => console.clear());
+    errorBtns[6].addEventListener('click', () => console.dir(form));
+    errorBtns[7].addEventListener('click', () => console.dirxml(form));
+    errorBtns[8].addEventListener('click', () => console.group('Console Group'));
+    errorBtns[9].addEventListener('click', () => console.groupEnd());
+    errorBtns[10].addEventListener('click', () => console.table([{
+      firstNum: document.querySelector('#first-num').value,
+      operator: document.querySelector('#operator').value,
+      secondNum: document.querySelector('#second-num').value
+    }]));
+    errorBtns[11].addEventListener('click', () => console.time('timer'));
+    errorBtns[12].addEventListener('click', () => console.timeEnd('timer'));
+    errorBtns[13].addEventListener('click', () => console.trace('Console Trace'));
+    errorBtns[14].addEventListener('click', () => {
+      throw new Error('global error triggered');
+    });
+
+    window.onerror = (message, source, lineno, colno, error) => {
+      console.log('global handler caught an error:', message);
+    };
   </script>
 </body>
 
